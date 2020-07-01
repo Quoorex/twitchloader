@@ -1,0 +1,12 @@
+# Completely remove a line to not use a specific setting (you can apply that setting via arguments instead)
+client-id: ""
+channels: ["markettraderstv"]
+collection-ids: ["6qCfrgFdrRUiaA", "Nf_ogQAuchXzkw", "Ge0w6f2taxViDg", "Sa98sgYuchVoAQ"]
+show-collections: False
+save-urls: False
+output-dir: "downloads"
+ydl-options: {
+    "format": "best",
+    "cookiefile": "cookies.txt",
+}
+
