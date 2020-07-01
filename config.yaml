@@ -1,12 +1,33 @@
-# Completely remove a line to not use a specific setting (you can apply that setting via arguments instead)
-client-id: ""
-channels: ["markettraderstv"]
-collection-ids: ["6qCfrgFdrRUiaA", "Nf_ogQAuchXzkw", "Ge0w6f2taxViDg", "Sa98sgYuchVoAQ"]
-show-collections: False
-save-urls: False
-output-dir: "downloads"
+# only include a line if you provide a value for that setting
+# else it can result in an error
+
+# Twitch API client id
+# get one by creating an application on https://dev.twitch.tv/
+# client-id: ""
+
+# channels to search for and get the VOD videos of
+# channels: ["markettraderstv"]
+
+# collection ids can be obtained by using the show-collections setting
+# if the collection ids are given, the previous 'channels' setting will be ignored
+# collection-id: ["6qCfrgFdrRUiaA", "Nf_ogQAuchXzkw", "Ge0w6f2taxViDg", "Sa98sgYuchVoAQ"]
+
+# only shows all available collections and their ids for a Twitch channel instead of downloading videos
+# show-collections: False
+
+# save the video urls to a file
+# save-urls: False
+
+# path where the video files will be saved
+# output-dir: "downloads"
+
+# Youtube-DL options
+# you can configure every option except for the output template (for that you have to edit the source code)
+# reference: https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312
 ydl-options: {
     "format": "best",
-    "cookiefile": "cookies.txt",
-}
+#   "cookiefile": "cookies.txt",  # Only needed to download subscriber-only videos
+#   "username": "",  # Only needed to download subscriber-only videos
+#   "password": "",  # Only needed to download subscriber-only videos
+    }
 
