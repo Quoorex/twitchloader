@@ -41,16 +41,16 @@ class Twitchloader():
         self.parser = configargparse.ArgParser(
             config_file_parser_class=configargparse.YAMLConfigFileParser,
             default_config_files=["config.yaml"],
-            description='Download VODs and complete video collections from Twitch.tv using youtube-dl'
+            description='Download VODs and complete video collections from Twitch.tv using youtube-dl.'
         )
         self.parser.add_argument("-c", "--config-path", is_config_file=True, dest="config-path", help="path to the config file")
         self.parser.add_argument("-C", "--channels", dest="channels", nargs="+", help="names of the channels to get the collections of")
         self.parser.add_argument("-t", "--client-id", dest="client_id", help="Twitch client ID needed to access the API (get one on https://dev.twitch.tv/)")
-        self.parser.add_argument("--collection-ids", dest="collection_ids", nargs="+", help="ids of the collections to process")
+        self.parser.add_argument("--collection-id", dest="collection_id", nargs="+", help="ids of the collections to process")
         self.parser.add_argument("--show-collections", action="store_true", dest="show_collections", help="show the collections of the channels")
         self.parser.add_argument("--save-urls", action="store_true", dest="save_urls", help="save the urls of the videos in separated folders instead of downloading them (for manual use with the '-a' youtube-dl option")
-        self.parser.add_argument("-o", "--output-dir", dest="output_dir", type=str, help="Path to where the files will be saved")
-        self.parser.add_argument("-y", "--ydl-options", dest="ydl_options", type=yaml.safe_load, help="Youtube-DL options (https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312)")
+        self.parser.add_argument("-o", "--output-dir", dest="output_dir", default="downloads", type=str, help="Path to where the files will be saved")
+        self.parser.add_argument("-y", "--ydl-options", dest="ydl_options", type=yaml.safe_load, default={"format": "best"}, help="Youtube-DL options (https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312)")
         return self.parser.parse()
 
     def print_banner(self):
@@ -122,7 +122,7 @@ class Twitchloader():
                     f.write(video_url + "\n")
 
     def download(self, collections_dict):
-        ydl_options = {"cookiefile": "cookies.txt"}
+        ydl_options = self.conf.ydl_options
         self.print_figlet("standard", "Starting the Downloads")
 
         download_dir = self.conf.output_dir
@@ -144,7 +144,7 @@ class Twitchloader():
 
     def run(self):
         self.print_banner()
-        collection_ids = self.conf.collection_ids
+        collection_ids = self.conf.collection_id
         if collection_ids is not None:
             self.print_figlet("standard", f"Processing collection IDs")
             collections = []
