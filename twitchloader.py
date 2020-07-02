@@ -19,14 +19,6 @@ __url__ = 'https://github.com/Quoorex/twitchloader'
 # TODO Add threading or multiprocessing
 
 
-def get_lines(file):
-    lines = []
-    with open(file) as f:
-        for l in f.readlines():
-            lines.append(l)
-    return lines
-
-
 class Twitchloader():
     def __init__(self):
         self.conf = self.init_parser()
@@ -38,6 +30,11 @@ class Twitchloader():
         self.headers = {"Accept": "application/vnd.twitchtv.v5+json", "Client-ID": client_id}
 
     def init_parser(self):
+        ydl_options_default = {
+            "format": "best",
+            "outtmpl": '%(download_dir)s/%(uploader)s/%(collection_name)s/%(video_index)s - %(title)s.%(ext)s',
+            "urls_outtmpl": '%(download_dir)s/%(uploader)s/%(title)s.%(ext)s',
+        }
         self.parser = configargparse.ArgParser(
             config_file_parser_class=configargparse.YAMLConfigFileParser,
             default_config_files=["config.yaml"],
@@ -46,11 +43,12 @@ class Twitchloader():
         self.parser.add_argument("-c", "--config-path", is_config_file=True, dest="config-path", help="path to the config file")
         self.parser.add_argument("-C", "--channels", dest="channels", nargs="+", help="names of the channels to get the collections of")
         self.parser.add_argument("-t", "--client-id", dest="client_id", help="Twitch client ID needed to access the API (get one on https://dev.twitch.tv/)")
-        self.parser.add_argument("--collection-id", dest="collection_id", nargs="+", help="ids of the collections to process")
+        self.parser.add_argument("--collection-ids", dest="collection_ids", nargs="+", help="ids of the collections to process")
         self.parser.add_argument("--show-collections", action="store_true", dest="show_collections", help="show the collections of the channels")
         self.parser.add_argument("--save-urls", action="store_true", dest="save_urls", help="save the urls of the videos in separated folders instead of downloading them (for manual use with the '-a' youtube-dl option")
         self.parser.add_argument("-o", "--output-dir", dest="output_dir", default="downloads", type=str, help="Path to where the files will be saved")
-        self.parser.add_argument("-y", "--ydl-options", dest="ydl_options", type=yaml.safe_load, default={"format": "best"}, help="Youtube-DL options (https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312)")
+        self.parser.add_argument("-y", "--ydl-options", dest="ydl_options", type=yaml.safe_load, default=ydl_options_default, help="Youtube-DL options (https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312)")
+        self.parser.add_argument("-u", "--urls", dest="urls", type=yaml.safe_load, nargs="+", help="URLs of the videos to download")
         return self.parser.parse()
 
     def print_banner(self):
@@ -121,20 +119,22 @@ class Twitchloader():
                 for video_url in video_urls:
                     f.write(video_url + "\n")
 
-    def download(self, collections_dict):
+    def download_collection(self, collections_dict):
+        """
+        Downloads a complete collection of videos
+        """
         ydl_options = self.conf.ydl_options
-        self.print_figlet("standard", "Starting the Downloads")
+        self.print_figlet("standard", "Starting the collection downloads")
 
         download_dir = self.conf.output_dir
 
         for collection_id in collections_dict.keys():
             collection_item, video_urls = collections_dict[collection_id]
             collection_name = collection_item["title"]
-            uploader = collection_item["owner"]["name"]
 
             for video_url in video_urls:
                 video_index = video_urls.index(video_url) + 1  # Add 1 because lists start at 0
-                ydl_options["outtmpl"] = f'{download_dir}/{uploader}/{collection_name}/{video_index} - %(title)s.%(ext)s'
+                ydl_options["outtmpl"] = ydl_options["outtmpl"].replace("%(download_dir)s", download_dir).replace("%(collection_name)s", collection_name).replace("%(video_index)s", str(video_index))
                 with youtube_dl.YoutubeDL(ydl_options) as ydl:
                     try:
                         ydl.download([video_url])
@@ -142,9 +142,27 @@ class Twitchloader():
                         print("\nUser interrupted the program, stopping ...")
                         sys.exit(1)
 
+    def download(self, video_urls):
+        """
+        Downloads individual videos from a list of URLs
+        """
+        ydl_options = self.conf.ydl_options
+        self.print_figlet("standard", "Starting the video downloads")
+
+        download_dir = self.conf.output_dir
+        ydl_options["outtmpl"] = ydl_options["urls_outtmpl"].replace("%(download_dir)s", download_dir)
+
+        with youtube_dl.YoutubeDL(ydl_options) as ydl:
+            try:
+                ydl.download(video_urls)
+            except KeyboardInterrupt:
+                print("\nUser interrupted the program, stopping ...")
+                sys.exit(1)
+
     def run(self):
         self.print_banner()
-        collection_ids = self.conf.collection_id
+        collection_ids = self.conf.collection_ids
+        collections_dict = dict()
         if collection_ids is not None:
             self.print_figlet("standard", f"Processing collection IDs")
             collections = []
@@ -154,7 +172,7 @@ class Twitchloader():
                 collection_item = requests.get(request_url, headers=self.headers).json()
                 collections.append(collection_item)
             collections_dict = self.gather_links(collections)
-        else:  # Only channel names are supplied
+        elif self.conf.channels:  # Only channel names are supplied
             for channel_name in self.conf.channels:
                 self.print_figlet("standard", f"Processing: {channel_name}")
                 channel_query_result = self.channel_search(channel_name)
@@ -166,18 +184,20 @@ class Twitchloader():
                     # Only show available collections
                     for collection in collections:
                         print(f"{collection['title']} - {collection['_id']}")
+                    sys.exit(1)
                 else:
                     # download the collections
                     collections_dict = self.gather_links(collections)
 
-        if self.conf.show_collections is True:
-            pass  # Collection was already printed
-        elif self.conf.save_urls is True:
-            self.save_urls(collections_dict)
-        else:
-            self.download(collections_dict)
+        # Single URLs are given
+        if self.conf.urls:
+            self.download(self.conf.urls)
 
-            print("-" * 50)  # Print a seperator
+        # Collection IDs are given
+        if self.conf.save_urls is True:
+            self.save_urls(collections_dict)
+        elif len(collections_dict) > 0:
+            self.download_collection(collections_dict)
 
 
 def main():
