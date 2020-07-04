@@ -29,12 +29,13 @@
 # reference: https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312
 ydl-options: {
     "format": "best",
-# Some of the outtmpl options are custom to this program and not part of youtube-dl
+# Some of the outtmpl options are specific to this program and not part of youtube-dl
     "outtmpl": '%(download_dir)s/%(uploader)s/%(collection_name)s/%(video_index)s - %(title)s.%(ext)s',
 # This is a special output template added by Twitchloader, that will only be used when downloading single videos (--urls option)
     "urls_outtmpl": '%(download_dir)s/%(uploader)s/%(title)s.%(ext)s',
 #    "cookiefile": "cookies.txt",  # Only needed to download subscriber-only videos
 #    "username": "",  # Only needed to download subscriber-only videos
 #    "password": "",  # Only needed to download subscriber-only videos
+#    "fixup": "warn",  # to ignore 'malformed aac stream' errors
 }
 

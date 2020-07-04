@@ -41,9 +41,9 @@ class Twitchloader():
             description='Download VODs and complete video collections from Twitch.tv using youtube-dl.'
         )
         self.parser.add_argument("-c", "--config-path", is_config_file=True, dest="config-path", help="path to the config file")
-        self.parser.add_argument("-C", "--channels", dest="channels", nargs="+", help="names of the channels to get the collections of")
+        self.parser.add_argument("-C", "--channels", dest="channels", nargs="+", type=yaml.safe_load, help="names of the channels to get the collections of")
         self.parser.add_argument("-t", "--client-id", dest="client_id", help="Twitch client ID needed to access the API (get one on https://dev.twitch.tv/)")
-        self.parser.add_argument("--collection-ids", dest="collection_ids", nargs="+", help="ids of the collections to process")
+        self.parser.add_argument("--collection-ids", dest="collection_ids", type=yaml.safe_load, nargs="+", help="ids of the collections to process")
         self.parser.add_argument("--show-collections", action="store_true", dest="show_collections", help="show the collections of the channels")
         self.parser.add_argument("--save-urls", action="store_true", dest="save_urls", help="save the urls of the videos in separated folders instead of downloading them (for manual use with the '-a' youtube-dl option")
         self.parser.add_argument("-o", "--output-dir", dest="output_dir", default="downloads", type=str, help="Path to where the files will be saved")
@@ -124,6 +124,7 @@ class Twitchloader():
         Downloads a complete collection of videos
         """
         ydl_options = self.conf.ydl_options
+        original_outtmpl = ydl_options["outtmpl"]
         self.print_figlet("standard", "Starting the collection downloads")
 
         download_dir = self.conf.output_dir
@@ -134,7 +135,7 @@ class Twitchloader():
 
             for video_url in video_urls:
                 video_index = video_urls.index(video_url) + 1  # Add 1 because lists start at 0
-                ydl_options["outtmpl"] = ydl_options["outtmpl"].replace("%(download_dir)s", download_dir).replace("%(collection_name)s", collection_name).replace("%(video_index)s", str(video_index))
+                ydl_options["outtmpl"] = original_outtmpl.replace("%(download_dir)s", download_dir).replace("%(collection_name)s", collection_name).replace("%(video_index)s", str(video_index))
                 with youtube_dl.YoutubeDL(ydl_options) as ydl:
                     try:
                         ydl.download([video_url])
