@@ -1,5 +1,6 @@
 .vscode
 cookies.txt
+config-testing.yaml
 
 # ---> Python
 # Byte-compiled / optimized / DLL files
