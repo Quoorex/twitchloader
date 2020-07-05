@@ -131,7 +131,7 @@ class Twitchloader():
 
     def rename_existing(self, video_url, download_dir, collection_name, video_index):
         outtmpl = self.conf.rename_outtmpl
-        with youtube_dl.YoutubeDL({}) as ydl:
+        with youtube_dl.YoutubeDL(self.conf.ydl_options) as ydl:
             info_dict = ydl.extract_info(video_url, download=False)
         filepath = self.process_outtmpl(outtmpl, download_dir, collection_name, video_index) % info_dict
         path, filename = os.path.split(filepath)
