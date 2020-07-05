@@ -9,6 +9,7 @@ from pyfiglet import Figlet
 import colorama
 from twitch import TwitchClient
 import requests
+from fuzzywuzzy import process
 import youtube_dl
 
 
@@ -49,6 +50,9 @@ class Twitchloader():
         self.parser.add_argument("-o", "--output-dir", dest="output_dir", default="downloads", type=str, help="Path to where the files will be saved")
         self.parser.add_argument("-y", "--ydl-options", dest="ydl_options", type=yaml.safe_load, default=ydl_options_default, help="Youtube-DL options (https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312)")
         self.parser.add_argument("-u", "--urls", dest="urls", type=yaml.safe_load, nargs="+", help="URLs of the videos to download")
+        self.parser.add_argument("--rename-existing", dest="rename_existing", type=bool, help="Rename exsting files")
+        self.parser.add_argument("--rename-outtmpl", dest="rename_outtmpl", type=str, help="Youtube-DL compatible output template for renaming files")
+        self.parser.add_argument("--match-ratio", dest="match_ratio", type=str, help="Percent ratio of how similar the name of an existing file has to be to be considered for the rename")
         return self.parser.parse()
 
     def print_banner(self):
@@ -119,6 +123,27 @@ class Twitchloader():
                 for video_url in video_urls:
                     f.write(video_url + "\n")
 
+    def process_outtmpl(self, outtmpl, download_dir, collection_name, video_index):
+        """
+        Replaces some parts of the outtmpl, that are specific to this program and youtube-dl therefore isn't able to handle
+        """
+        return outtmpl.replace("%(download_dir)s", download_dir).replace("%(collection_name)s", collection_name).replace("%(video_index)s", str(video_index))
+
+    def rename_existing(self, video_url, download_dir, collection_name, video_index):
+        outtmpl = self.conf.rename_outtmpl
+        with youtube_dl.YoutubeDL({}) as ydl:
+            info_dict = ydl.extract_info(video_url, download=False)
+        filepath = self.process_outtmpl(outtmpl, download_dir, collection_name, video_index) % info_dict
+        path, filename = os.path.split(filepath)
+        match = process.extractOne(filename, os.listdir(path))
+        if not match:
+            return False
+        if match[1] >= int(self.conf.match_ratio):
+            match_filepath = os.path.join(path, match[0])
+            save_path = os.path.join(path, filename)
+            os.rename(match_filepath, save_path)
+            return True  # rename took place
+
     def download_collection(self, collections_dict):
         """
         Downloads a complete collection of videos
@@ -135,7 +160,10 @@ class Twitchloader():
 
             for video_url in video_urls:
                 video_index = video_urls.index(video_url) + 1  # Add 1 because lists start at 0
-                ydl_options["outtmpl"] = original_outtmpl.replace("%(download_dir)s", download_dir).replace("%(collection_name)s", collection_name).replace("%(video_index)s", str(video_index))
+                ydl_options["outtmpl"] = self.process_outtmpl(original_outtmpl, download_dir, collection_name, video_index)
+                if self.conf.rename_existing is True:
+                    if self.rename_existing(video_url, download_dir, collection_name, video_index) is True:
+                        continue  # File exists and was renamed; programm can continue with the next video
                 with youtube_dl.YoutubeDL(ydl_options) as ydl:
                     try:
                         ydl.download([video_url])
@@ -153,12 +181,16 @@ class Twitchloader():
         download_dir = self.conf.output_dir
         ydl_options["outtmpl"] = ydl_options["urls_outtmpl"].replace("%(download_dir)s", download_dir)
 
-        with youtube_dl.YoutubeDL(ydl_options) as ydl:
-            try:
-                ydl.download(video_urls)
-            except KeyboardInterrupt:
-                print("\nUser interrupted the program, stopping ...")
-                sys.exit(1)
+        for video_url in video_urls:
+            if self.conf.rename_existing is True:
+                if self.rename_existing(video_url, download_dir, "", "") is True:
+                    continue  # File exists and was renamed; programm can continue with the next video
+            with youtube_dl.YoutubeDL(ydl_options) as ydl:
+                try:
+                    ydl.download([video_url])
+                except KeyboardInterrupt:
+                    print("\nUser interrupted the program, stopping ...")
+                    sys.exit(1)
 
     def run(self):
         self.print_banner()

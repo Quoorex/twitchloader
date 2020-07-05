@@ -13,6 +13,8 @@ colorama = "^0.4.3"
 python-twitch-client = "^0.6.0"
 pyyaml = "^5.3.1"
 configargparse = "^1.2.3"
+fuzzywuzzy = "^0.18.0"
+python-Levenshtein = "^0.12.0"
 
 [tool.poetry.dev-dependencies]
 pycodestyle = "^2.5.0"
