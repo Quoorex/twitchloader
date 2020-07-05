@@ -11,6 +11,7 @@ Download VOD videos and complete collections from Twitch.tv using youtube-dl.
 
 `poetry install`  
 This sets up a virtual environment and installs all dependencies.  
+This should be done after every update in order to always have all dependencies installed.
 
 ### Twitch API Client ID
 

@@ -28,7 +28,7 @@
 # rename-existing: False
 # rename-outtmpl: '%(download_dir)s/%(creator)s/%(collection_name)s/%(upload_date)s - %(title)s.%(ext)s'
 # percent ratio of how similar the name of an existing file has to be to be considered for the rename
-# match-ratio: 98
+# match-ratio: 70
 
 # Youtube-DL options
 # you can configure every option except for the output template (for that you have to edit the source code)
