@@ -30,9 +30,9 @@
 ydl-options: {
     "format": "best",
 # Some of the outtmpl options are specific to this program and not part of youtube-dl
-    "outtmpl": '%(download_dir)s/%(uploader)s/%(collection_name)s/%(video_index)s - %(title)s.%(ext)s',
+    "outtmpl": '%(download_dir)s/%(creator)s/%(collection_name)s/%(video_index)s - %(title)s.%(ext)s',
 # This is a special output template added by Twitchloader, that will only be used when downloading single videos (--urls option)
-    "urls_outtmpl": '%(download_dir)s/%(uploader)s/%(title)s.%(ext)s',
+    "urls_outtmpl": '%(download_dir)s/%(creator)s/%(title)s.%(ext)s',
 #    "cookiefile": "cookies.txt",  # Only needed to download subscriber-only videos
 #    "username": "",  # Only needed to download subscriber-only videos
 #    "password": "",  # Only needed to download subscriber-only videos
