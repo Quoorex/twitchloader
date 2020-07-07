@@ -13,7 +13,7 @@
 
 # collection ids can be obtained by using the show-collections setting
 # if the collection ids are given, the previous 'channels' setting will be ignored
-# collection-id: ["6qCfrgFdrRUiaA", "Nf_ogQAuchXzkw", "Ge0w6f2taxViDg", "Sa98sgYuchVoAQ"]
+# collection-ids: ["6qCfrgFdrRUiaA", "Nf_ogQAuchXzkw", "Ge0w6f2taxViDg", "Sa98sgYuchVoAQ"]
 
 # only shows all available collections and their ids for a Twitch channel instead of downloading videos
 # show-collections: False
