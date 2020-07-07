@@ -135,7 +135,7 @@ class Twitchloader():
             info_dict = ydl.extract_info(video_url, download=False)
         filepath = self.process_outtmpl(outtmpl, download_dir, collection_name, video_index) % info_dict
         path, filename = os.path.split(filepath)
-        if not(os.path.exists(filepath)):
+        if not(os.path.exists(path)):
             os.makedirs(path)
         match = process.extractOne(filename, os.listdir(path))
         if not match:
