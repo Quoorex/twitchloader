@@ -203,7 +203,11 @@ class Twitchloader():
                 # Get additonal information about that collection
                 request_url = self.api_base + f"collections/{c_id}"
                 collection_item = requests.get(request_url, headers=self.headers).json()
-                collections.append(collection_item)
+                if "error" in collection_item.keys():
+                    print(f"Collection with the ID '{c_id}' does not exist")
+                    continue
+                else:
+                    collections.append(collection_item)
             collections_dict = self.gather_links(collections)
         elif self.conf.channels:  # Only channel names are supplied
             for channel_name in self.conf.channels:
