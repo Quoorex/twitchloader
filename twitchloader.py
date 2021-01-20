@@ -21,6 +21,9 @@ __url__ = "https://github.com/Quoorex/twitchloader"
 # (Twitch API has a ratelimit though,
 # but the API is only used to gather the links in the beginning anyway)
 
+# TODO: Make use of the youtube-dl archive option
+# This avoid checking already downloaded videos.
+
 # TODO Fix rename randomly creating folders with parts of video titles as their name
 
 
