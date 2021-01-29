@@ -39,6 +39,9 @@ ydl-options: {
     "outtmpl": '%(download_dir)s/%(uploader)s/%(collection_name)s/%(video_index)s - %(title)s.%(ext)s',
 # This is a special output template added by Twitchloader, that will only be used when downloading single videos (--urls option)
     "urls_outtmpl": '%(download_dir)s/%(uploader)s/%(title)s.%(ext)s',
+    # Uses a text file to keep track of already downloaded files.
+    # Videos already present in the file are not downloaded again.
+    "download_archive": "archive.txt",
 #    "cookiefile": "cookies.txt",  # Only needed to download subscriber-only videos
 #    "username": "",  # Only needed to download subscriber-only videos
 #    "password": "",  # Only needed to download subscriber-only videos
