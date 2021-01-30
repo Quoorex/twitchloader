@@ -228,6 +228,9 @@ class Twitchloader:
         outtmpl = self.conf.rename_outtmpl
         with youtube_dl.YoutubeDL(self.conf.ydl_options) as ydl:
             info_dict = ydl.extract_info(video_url, download=False)
+        # In some cases video do not have a upload date.
+        if info_dict["timestamp"] is None:
+            outtmpl = outtmpl.replace("%(upload_date)s", "")
         filepath = (
             self.process_outtmpl(outtmpl, download_dir, collection_name, video_index)
             % info_dict
